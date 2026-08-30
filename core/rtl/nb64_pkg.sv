@@ -51,6 +51,23 @@ package nb64_pkg;
         ALU_SRAW = 5'b11101
     } alu_op_t;
 
+    typedef enum logic [3:0] { // ??
+        MEXT_MUL
+        MEXT_MULH
+        MEXT_MULHSU
+        MEXT_MULHU
+        MEXT_DIV
+        MEXT_DIVU
+        MEXT_REM
+        MEXT_REMU
+
+        MEXT_MULW
+        MEXT_DIVW
+        MEXT_DIVUW
+        MEXT_REMW
+        MEXT_REMUW
+    } mext_op_t;
+
     typedef enum logic [11:0] {
         MVENDORID     = 12'hF11,
         MARCHID       = 12'hF12,
