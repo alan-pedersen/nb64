@@ -23,7 +23,7 @@ module sync_fifo #(
     assign rdata = fifo[rd_ptr[INDEX_BITS-1:0]];
 
     assign empty = (rd_ptr == wr_ptr);
-    assign full  = ((rd_ptr[INDEX_BITS] != wr_ptr[INDEX_BITS]) &&
+    assign full  = ((rd_ptr[INDEX_BITS]     != wr_ptr[INDEX_BITS]) &&
                     (rd_ptr[INDEX_BITS-1:0] == wr_ptr[INDEX_BITS-1:0]));
 
     assign count = wr_ptr - rd_ptr;
