@@ -32,7 +32,7 @@ package nb64_pkg;
         OP_CUSTOM3  = 7'b1111011
     } opcode_t;
 
-    // ALU operation encoding: {word_op, funct7[5] (instr[30]), funct3}
+    // ALU operation encoding: {word_op, funct7[5] / instr[30], funct3}
     typedef enum logic [4:0] {
         ALU_ADD  = 5'b00000,
         ALU_SUB  = 5'b01000,
@@ -51,21 +51,21 @@ package nb64_pkg;
         ALU_SRAW = 5'b11101
     } alu_op_t;
 
-    typedef enum logic [3:0] { // ??
-        MEXT_MUL
-        MEXT_MULH
-        MEXT_MULHSU
-        MEXT_MULHU
-        MEXT_DIV
-        MEXT_DIVU
-        MEXT_REM
-        MEXT_REMU
-
-        MEXT_MULW
-        MEXT_DIVW
-        MEXT_DIVUW
-        MEXT_REMW
-        MEXT_REMUW
+    // MEXT operation encoding: {word_op (funct7[5] / instr[30]), funct3}
+    typedef enum logic [3:0] {
+        MEXT_MUL    = 4'b0000
+        MEXT_MULH   = 4'b0001
+        MEXT_MULHSU = 4'b0010
+        MEXT_MULHU  = 4'b0011
+        MEXT_DIV    = 4'b0100
+        MEXT_DIVU   = 4'b0101
+        MEXT_REM    = 4'b0110
+        MEXT_REMU   = 4'b0111
+        MEXT_MULW   = 4'b1000
+        MEXT_DIVW   = 4'b1100
+        MEXT_DIVUW  = 4'b1101
+        MEXT_REMW   = 4'b1110
+        MEXT_REMUW  = 4'b1111
     } mext_op_t;
 
     typedef enum logic [11:0] {
