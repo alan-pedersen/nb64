@@ -154,3 +154,7 @@ module nb64__exu import nb64_pkg::*; #(
         end
     end
 endmodule
+// Not all flops are reset to 0, for performance
+// purposes. Only control signals are reset to 0
+// since other hardware should check them before
+// using data flops ??
