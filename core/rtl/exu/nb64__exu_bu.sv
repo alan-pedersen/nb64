@@ -8,8 +8,8 @@ module nb64__exu_bu #(
 
     input logic [XLEN-1:0]  rs1,
     input logic [XLEN-1:0]  rs2,
-    input logic [XLEN-1:0]  pc,
     input logic [XLEN-1:0]  imm,
+    input logic [XLEN-1:0]  pc,
 
     output logic            pc_redirect,
     output logic [XLEN-1:0] pc_target
