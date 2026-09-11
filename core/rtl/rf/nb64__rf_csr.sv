@@ -2,7 +2,7 @@ module nb64__rf_csr #(
     parameter int XLEN = 64
 )(
     input logic clk,
-    input logic rst,
+    input logic rst
 );
     // ================================================================
     // RV64 and RV32 Registers
