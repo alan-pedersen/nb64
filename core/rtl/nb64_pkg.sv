@@ -68,6 +68,28 @@ package nb64_pkg;
         MEXT_REMUW  = 4'b1111
     } mext_op_t;
 
+    // AMO operation encoding: {word_op (funct3[0]), funct5}
+    typedef enum logic [5:0] {
+        AMO_SWAP  = 6'b000001,
+        AMO_ADD   = 6'b000000,
+        AMO_XOR   = 6'b000100,
+        AMO_AND   = 6'b001100,
+        AMO_OR    = 6'b001000,
+        AMO_MIN   = 6'b010000,
+        AMO_MAX   = 6'b010100,
+        AMO_MINU  = 6'b011000,
+        AMO_MAXU  = 6'b011100,
+        AMO_SWAPW = 6'b100001,
+        AMO_ADDW  = 6'b100000,
+        AMO_XORW  = 6'b100100,
+        AMO_ANDW  = 6'b101100,
+        AMO_ORW   = 6'b101000,
+        AMO_MINW  = 6'b110000,
+        AMO_MAXW  = 6'b110100,
+        AMO_MINUW = 6'b111000,
+        AMO_MAXUW = 6'b111100
+    } amo_op_t;
+
     typedef enum logic [11:0] {
         CSR_MVENDORID     = 12'hF11,
         CSR_MARCHID       = 12'hF12,
