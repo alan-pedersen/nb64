@@ -15,7 +15,7 @@ core/rtl/ifu/nb64__ifu_ras.sv     \
 core/rtl/ifu/nb64__ifu_fetch.sv   \
 core/rtl/ifu/nb64__ifu_decode.sv  \
 core/rtl/ifu/nb64__ifu.sv         \
-core/rtl/exu/nb64__math_ksa.sv    \
+core/rtl/exu/nb64__exu_ksa.sv    \
 core/rtl/exu/nb64__exu_alu.sv     \
 core/rtl/exu/nb64__exu_mul.sv     \
 core/rtl/exu/nb64__exu_div.sv     \
