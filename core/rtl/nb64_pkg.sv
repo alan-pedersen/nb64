@@ -214,4 +214,10 @@ package nb64_pkg;
         INT_M_EXTERNAL       = 4'd11,
         INT_COUNTER_OVERFLOW = 4'd13
     } int_cause_t;
+
+    typedef struct packed {
+        logic            valid;
+        exc_cause_t      cause;
+        logic [XLEN-1:0] tval;
+    } trap_ctrl_t;
 endpackage
