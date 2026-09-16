@@ -1,8 +1,8 @@
 module nb64__exu_ksa #(
     parameter int WIDTH = 128
 )(
-    input  logic [WIDTH-1:0] a, // src vs op ??
-    input  logic [WIDTH-1:0] b,
+    input  logic [WIDTH-1:0] src_a,
+    input  logic [WIDTH-1:0] src_b,
     input  logic             cin,
     output logic [WIDTH-1:0] sum,
     output logic             cout
@@ -13,8 +13,8 @@ module nb64__exu_ksa #(
     logic [WIDTH-1:0] p [STAGES+1];
     logic [WIDTH:0]   c;
 
-    assign g[0] = a & b;
-    assign p[0] = a ^ b;
+    assign g[0] = src_a & src_b;
+    assign p[0] = src_a ^ src_b;
     assign c[0] = cin;
 
     generate
