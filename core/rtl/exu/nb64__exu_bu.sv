@@ -26,8 +26,8 @@ module nb64__exu_bu #(
     logic            is_lts;
     logic            branch_cond;
 
-    logic [XLEN-1:0] bta_target; // Valid for BRANCH and JAL
-    logic [XLEN-1:0] agu_target; // Valid for JALR
+    logic [XLEN-1:0] pc_rel_target; // Valid for BRANCH and JAL
+    logic [XLEN-1:0] jalr_target;   // Valid for JALR
 
     assign is_eq  = (rs1 == rs2);
     assign is_ltu = (rs1 < rs2);
@@ -45,9 +45,9 @@ module nb64__exu_bu #(
         endcase
     end
 
-    assign bta_target = pc + imm;
-    assign agu_target = (rs1 + imm) & ~XLEN'(1);
+    assign pc_rel_target = pc + imm;
+    assign jalr_target   = (rs1 + imm) & ~XLEN'(1);
 
     assign pc_redirect = is_jump || (is_branch && branch_cond);
-    assign pc_target   = is_jalr ? agu_target : bta_target;
+    assign pc_target   = is_jalr ? jalr_target : pc_rel_target;
 endmodule
