@@ -12,7 +12,8 @@ module nb64__exu_bu #(
     input logic [XLEN-1:0]  pc,
 
     output logic            pc_redirect,
-    output logic [XLEN-1:0] pc_target
+    output logic [XLEN-1:0] pc_target,
+    output logic            target_misaligned
 );
     localparam logic [2:0] BR_EQ  = 3'b000;
     localparam logic [2:0] BR_NE  = 3'b001;
@@ -26,8 +27,9 @@ module nb64__exu_bu #(
     logic            is_lts;
     logic            branch_cond;
 
-    logic [XLEN-1:0] pc_rel_target; // Valid for BRANCH and JAL
-    logic [XLEN-1:0] jalr_target;   // Valid for JALR
+    logic [XLEN-1:0] pc_rel_target;  // Valid for BRANCH and JAL
+    logic [XLEN-1:0] jalr_target;    // Valid for JALR
+    logic [1:0]      target_addr_lo; // Calculates EXC_INSTR_ADDR_MISALIGNED
 
     assign is_eq  = (rs1 == rs2);
     assign is_ltu = (rs1 < rs2);
@@ -45,9 +47,15 @@ module nb64__exu_bu #(
         endcase
     end
 
-    assign pc_rel_target = pc + imm;
-    assign jalr_target   = (rs1 + imm) & ~XLEN'(1);
+    assign pc_rel_target  = pc + imm;
+    assign jalr_target    = (rs1 + imm) & ~XLEN'(1);
+    assign target_addr_lo = (is_jalr ? rs1[1:0] : pc[1:0]) + imm[1:0];
 
-    assign pc_redirect = is_jump || (is_branch && branch_cond);
-    assign pc_target   = is_jalr ? jalr_target : pc_rel_target;
+    assign pc_redirect    = is_jump || (is_branch && branch_cond);
+    assign pc_target      = is_jalr ? jalr_target : pc_rel_target;
+
+    always_comb begin
+        if (is_jalr) target_misaligned = pc_redirect && (target_addr_lo[1] != 1'b0);
+        else         target_misaligned = pc_redirect && (target_addr_lo    != 2'b00);
+    end
 endmodule
