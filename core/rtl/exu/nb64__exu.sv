@@ -4,18 +4,18 @@ module nb64__exu import nb64_pkg::*; #(
     input  logic            clk,
     input  logic            rst,
 
-    input  logic            ex_stall_i,
-    input  logic            ex_flush_i,
-    input  logic            ex_kill_i,   // Kills multi-cycle ops such as mul/div
-    output logic            exu_stall_o, // EXU requesting upstream stall
+    input  logic            stall_i,
+    input  logic            flush_i,
+    input  logic            kill_i,   // Kills multi-cycle ops such as mul/div
+    output logic            stall_o,  // EXU requesting upstream stall
 
     input  logic [1:0]      fwd_rs1_sel_i,
     input  logic [1:0]      fwd_rs2_sel_i,
     input  logic [XLEN-1:0] fwd_mem_data_i, // Data from EX/MEM register
     input  logic [XLEN-1:0] fwd_wb_data_i,  // Data from MEM/WB register
 
-    input  logic            id_valid_i,
-    input  trap_ctrl_t      id_trap_i,
+    input  logic            valid_i,
+    input  trap_ctrl_t      trap_i,
     input  logic [XLEN-1:0] pc_i,
 
     input  logic [XLEN-1:0] rs1_i,
@@ -35,10 +35,12 @@ module nb64__exu import nb64_pkg::*; #(
 
     input  logic            is_load_i,
     input  logic            is_store_i,
+    input  logic            is_lr_i,
+    input  logic            is_sc_i,
     input  logic            is_amo_i,
     input  amo_op_t         amo_op_i,
-    input  logic [2:0]      mem_size_i,
-    input  logic            mem_unsigned_i,
+    input  logic [2:0]      size_i,
+    input  logic            unsigned_i,
 
     input  logic            gpr_we_i,
     input  logic [4:0]      gpr_waddr_i,
@@ -50,21 +52,23 @@ module nb64__exu import nb64_pkg::*; #(
     output logic            pc_redirect_o,
     output logic [XLEN-1:0] pc_target_o,
 
-    output logic            mem_is_load_o,
-    output logic            mem_is_store_o,
-    output logic            mem_is_amo_o,
-    output amo_op_t         mem_amo_op_o,
-    output logic [2:0]      mem_size_o,
-    output logic            mem_unsigned_o,
-    output logic [XLEN-1:0] mem_addr_o,
-    output logic [XLEN-1:0] mem_wdata_o,
+    output logic            is_load_o,
+    output logic            is_store_o,
+    output logic            is_lr_o,
+    output logic            is_sc_o,
+    output logic            is_amo_o,
+    output amo_op_t         amo_op_o,
+    output logic [2:0]      size_o,
+    output logic            unsigned_o,
+    output logic [XLEN-1:0] addr_o,
+    output logic [XLEN-1:0] wdata_o,
 
-    output logic            mem_valid_o,
-    output trap_ctrl_t      mem_trap_o,
-    output logic [XLEN-1:0] mem_result_o,
-    output logic            mem_gpr_we_o,
-    output logic [4:0]      mem_gpr_waddr_o,
-    output csr_req_t        mem_csr_req_o
+    output logic            valid_o,
+    output trap_ctrl_t      trap_o,
+    output logic [XLEN-1:0] result_o,
+    output logic            gpr_we_o,
+    output logic [4:0]      gpr_waddr_o,
+    output csr_req_t        csr_req_o
 );
     // ================================================================
     // ALU
@@ -113,13 +117,13 @@ module nb64__exu import nb64_pkg::*; #(
 
     // A mask with !trap_ctrl.valid is unnecessary, since an instruction
     // cannot be both an arithmetic one and a branch one
-    assign mext_start = id_valid_i && !id_trap_i.valid && mext_en_i && !ex_kill_i;
+    assign mext_start = valid_i && !trap_i.valid && mext_en_i && !kill_i;
 
     nb64__exu_mext #(
         .XLEN (XLEN)
     ) u_mext (
         .clk     (clk),
-        .rst     (rst || ex_kill_i),
+        .rst     (rst || kill_i),
         .start   (mext_start),
         .mext_op (mext_op_i),
         .src_a   (rs1_resolved),
@@ -160,9 +164,9 @@ module nb64__exu import nb64_pkg::*; #(
     trap_ctrl_t trap_ctrl;
 
     always_comb begin
-        trap_ctrl = id_trap_i;
+        trap_ctrl = trap_i;
 
-        if (id_valid_i && !id_trap_i.valid) begin
+        if (valid_i && !trap_i.valid) begin
             if (bu_misaligned) begin
                 trap_ctrl.valid = 1;
                 trap_ctrl.cause = EXC_INSTR_ADDR_MISALIGNED;
@@ -175,39 +179,41 @@ module nb64__exu import nb64_pkg::*; #(
     // EXU and Pipeline Outputs
     // ================================================================
 
-    assign exu_stall_o   = id_valid_i && !id_trap_i.valid && mext_en_i && !mext_valid;
-    assign pc_redirect_o = id_valid_i && !trap_ctrl.valid && !ex_flush_i && bu_redirect;
+    assign stall_o       = valid_i && !trap_i.valid && mext_en_i && !mext_valid;
+    assign pc_redirect_o = valid_i && !trap_ctrl.valid && !flush_i && bu_redirect;
     assign pc_target_o   = bu_target;
 
     // Strictly speaking, it is only necessary to clear mem_valid_o if the pipeline
     // properly checks the valid and trap.valid bits
     always_ff @(posedge clk) begin
-        if (rst || ex_flush_i) begin
-            mem_valid_o         <= 0;
-            mem_trap_o.valid    <= 0;
-            mem_gpr_we_o        <= 0;
-            mem_csr_req_o.valid <= 0;
+        if (rst || flush_i) begin
+            valid_o         <= 0;
+            trap_o.valid    <= 0;
+            gpr_we_o        <= 0;
+            csr_req_o.valid <= 0;
         end
-        else if (!ex_stall_i) begin
-            mem_is_load_o   <= is_load_i;
-            mem_is_store_o  <= is_store_i;
-            mem_is_amo_o    <= is_amo_i;
-            mem_amo_op_o    <= amo_op_i;
-            mem_size_o      <= mem_size_i;
-            mem_unsigned_o  <= mem_unsigned_i;
-            mem_addr_o      <= rs1_resolved + imm_i;
-            mem_wdata_o     <= rs2_resolved;
+        else if (!stall_i) begin
+            is_load_o   <= is_load_i;
+            is_store_o  <= is_store_i;
+            is_lr_o     <= is_lr_i;
+            is_sc_o     <= is_sc_i;
+            is_amo_o    <= is_amo_i;
+            amo_op_o    <= amo_op_i;
+            size_o      <= size_i;
+            unsigned_o  <= unsigned_i;
+            addr_o      <= rs1_resolved + imm_i;
+            wdata_o     <= rs2_resolved;
 
-            mem_valid_o     <= id_valid_i;
-            mem_trap_o      <= trap_ctrl;
-            mem_gpr_we_o    <= gpr_we_i;
-            mem_gpr_waddr_o <= gpr_waddr_i;
-            mem_csr_req_o   <= 0; // Placeholder ??
+            valid_o     <= valid_i;
+            trap_o      <= trap_ctrl;
+            gpr_we_o    <= gpr_we_i;
+            gpr_waddr_o <= gpr_waddr_i;
+            csr_req_o   <= 0; // Placeholder ??
 
-            if      (is_auipc_i) mem_result_o <= pc_i + imm_i;
-            else if (mext_en_i)  mem_result_o <= mext_result;
-            else if (is_jump_i)  mem_result_o <= pc_i + 4;
-            else                 mem_result_o <= alu_result;
+            if      (is_auipc_i) result_o <= pc_i + imm_i;
+            else if (mext_en_i)  result_o <= mext_result;
+            else if (is_jump_i)  result_o <= pc_i + 4;
+            else                 result_o <= alu_result;
         end
     end
 endmodule
