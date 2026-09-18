@@ -22,7 +22,7 @@ module nb64__mem_itcm (
 `else
     CF_SRAM_16384x32_core u_itcm_sram (
         .DO         (rdata),
-        .DI         (32'h00000000),
+        .DI         (wdata),
         .BEN        (32'hFFFFFFFF),
         .AD         (addr[15:2]),
         .EN         (req),
