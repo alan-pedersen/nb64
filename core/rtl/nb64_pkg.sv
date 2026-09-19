@@ -1,6 +1,10 @@
 package nb64_pkg;
     localparam int XLEN = 64;
 
+    // ================================================================
+    // Base Instructions
+    // ================================================================
+
     typedef enum logic [6:0] {
         OP_LOAD     = 7'b0000011,
         OP_STORE    = 7'b0100011,
@@ -89,6 +93,10 @@ package nb64_pkg;
         AMO_MINUW = 6'b111000,
         AMO_MAXUW = 6'b111100
     } amo_op_t;
+
+    // ================================================================
+    // System and CSRs
+    // ================================================================
 
     typedef enum logic [11:0] {
         CSR_MVENDORID     = 12'hF11,
@@ -185,6 +193,17 @@ package nb64_pkg;
         CSR_SCTRDEPTH     = 12'h15F
     } csr_addr_t;
 
+    // CSR operation encoding: funct3[1:0]
+    typedef enum logic [1:0] {
+        CSR_RW = 2'b01,
+        CSR_RS = 2'b10,
+        CSR_RC = 2'b11
+    } csr_op_t;
+
+    // ================================================================
+    // Exceptions and Interrupts
+    // ================================================================
+
     typedef enum logic [4:0] {
         EXC_INSTR_ADDR_MISALIGNED     = 5'd0,
         EXC_INSTR_ACCESS_FAULT        = 5'd1,
@@ -215,9 +234,47 @@ package nb64_pkg;
         INT_COUNTER_OVERFLOW = 4'd13
     } int_cause_t;
 
+    // ================================================================
+    // Pipeline Control
+    // ================================================================
+
+    typedef struct packed {
+        logic       is_auipc;
+        logic       op2_is_imm;
+        alu_op_t    alu_op;
+        logic       mext_en;
+        mext_op_t   mext_op;
+        logic       is_branch;
+        logic       is_jump;
+        logic       is_jalr;
+        logic [2:0] br_type;
+    } exu_ctrl_t;
+
+    typedef struct packed {
+        logic       is_load;
+        logic       is_store;
+        logic       is_lr;
+        logic       is_sc;
+        logic       is_amo;
+        amo_op_t    amo_op;
+        logic [2:0] size;
+        logic       is_unsigned;
+    } lsu_ctrl_t;
+
+    typedef struct packed {
+        logic       gpr_we;
+        logic [4:0] gpr_waddr;
+    } gpr_ctrl_t;
+
+    typedef struct packed {
+        logic      valid;
+        csr_op_t   op;
+        csr_addr_t addr;
+    } csr_ctrl_t;
+
     typedef struct packed {
         logic            valid;
         exc_cause_t      cause;
         logic [XLEN-1:0] tval;
-    } trap_ctrl_t;
+    } exc_ctrl_t;
 endpackage
