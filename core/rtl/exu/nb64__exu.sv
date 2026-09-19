@@ -171,7 +171,7 @@ module nb64__exu import nb64_pkg::*; #(
 
             mem_addr_o  <= rs1_resolved + imm_i;
             mem_wdata_o <= rs2_resolved;
-            csr_wdata_o <= // ?? Placeholder
+            csr_wdata_o <= rs1_resolved; // ?? Placeholder
 
             if      (exu_ctrl_i.is_auipc) result_o <= pc_i + imm_i;
             else if (exu_ctrl_i.mext_en)  result_o <= mext_result;
