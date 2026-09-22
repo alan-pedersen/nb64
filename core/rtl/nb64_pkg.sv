@@ -55,7 +55,7 @@ package nb64_pkg;
         ALU_SRAW = 5'b11101
     } alu_op_t;
 
-    // MEXT operation encoding: {word_op (funct7[5] / instr[30]), funct3}
+    // MEXT operation encoding: {word_op, funct3}
     typedef enum logic [3:0] {
         MEXT_MUL    = 4'b0000,
         MEXT_MULH   = 4'b0001,
@@ -72,7 +72,7 @@ package nb64_pkg;
         MEXT_REMUW  = 4'b1111
     } mext_op_t;
 
-    // AMO operation encoding: {word_op (funct3[0]), funct5}
+    // AMO operation encoding: {word_op (!funct3[0]), funct5}
     typedef enum logic [5:0] {
         AMO_SWAP  = 6'b000001,
         AMO_ADD   = 6'b000000,
@@ -262,8 +262,8 @@ package nb64_pkg;
     } lsu_ctrl_t;
 
     typedef struct packed {
-        logic       gpr_we;
-        logic [4:0] gpr_waddr;
+        logic       we;
+        logic [4:0] waddr;
     } gpr_ctrl_t;
 
     typedef struct packed {
